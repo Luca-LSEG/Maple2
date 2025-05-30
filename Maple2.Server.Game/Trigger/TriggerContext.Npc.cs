@@ -3,7 +3,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
-using Maple2.Server.Game.Trigger.Helpers;
+using Maple2.Server.Game.Scripting.Trigger;
 
 namespace Maple2.Server.Game.Trigger;
 
@@ -168,9 +168,7 @@ public partial class TriggerContext {
         WarnLog("[SetNpcRotation] spawnId:{SpawnId}, rotation:{Rotation}", spawnId, rotation);
         foreach (FieldNpc npc in Field.EnumerateNpcs()) {
             if (npc.SpawnPointId == spawnId) {
-                npc.Rotation = npc.Rotation with {
-                    Z = rotation
-                };
+                npc.Rotation = npc.Rotation with { Z = rotation };
             }
         }
     }
@@ -185,22 +183,17 @@ public partial class TriggerContext {
     }
 
     #region Conditions
-    public bool CheckNpcAdditionalEffect(int spawnId, int additionalEffectId, int level, bool negate) {
+    public bool CheckNpcAdditionalEffect(int spawnId, int additionalEffectId, int level) {
         DebugLog("[CheckNpcAdditionalEffect] spawnId:{SpawnId}, additionalEffectId:{EffectId}, level:{Level}", spawnId, additionalEffectId, level);
         IEnumerable<IActor> actors = Field.GetActorsBySpawnId(spawnId);
-        bool hasAnyBuff = false;
         foreach (IActor actor in actors) {
             if (actor is not FieldNpc) {
                 continue;
             }
-
-            if (!actor.Buffs.HasBuff(additionalEffectId, (short) level)) continue;
-
-            hasAnyBuff = true;
-            break;
+            return actor.Buffs.HasBuff(additionalEffectId, (short) level);
         }
 
-        return negate ? !hasAnyBuff : hasAnyBuff;
+        return false;
     }
 
     public bool MonsterDead(int[] spawnIds, bool autoTarget) {
@@ -217,7 +210,7 @@ public partial class TriggerContext {
         return true;
     }
 
-    public bool MonsterInCombat(int[] spawnIds, bool negate) {
+    public bool MonsterInCombat(int[] spawnIds) {
         WarnLog("[MonsterInCombat] spawnIds:{SpawnIds}", string.Join(", ", spawnIds));
         foreach (FieldNpc mob in Field.Mobs.Values) {
             if (mob.SpawnPointId > 0 || !spawnIds.Contains(mob.SpawnPointId)) {
@@ -225,14 +218,14 @@ public partial class TriggerContext {
             }
 
             if (mob.BattleState.InBattle) {
-                return !negate;
+                return true;
             }
         }
 
-        return negate;
+        return false;
     }
 
-    public bool NpcDetected(int boxId, int[] spawnIds, bool negate) {
+    public bool NpcDetected(int boxId, int[] spawnIds) {
         DebugLog("[NpcDetected] boxId:{BoxId}, spawnIds:{SpawnIds}", boxId, string.Join(", ", spawnIds));
         if (spawnIds.Length == 0 || spawnIds[0] == 0) {
             return NpcsInBox(boxId).Any();
@@ -240,11 +233,11 @@ public partial class TriggerContext {
 
         foreach (FieldNpc mob in NpcsInBox(boxId)) {
             if (mob.SpawnPointId > 0 && spawnIds.Contains(mob.SpawnPointId)) {
-                return !negate;
+                return true;
             }
         }
 
-        return negate;
+        return false;
     }
 
     public bool NpcIsDeadByStringId(string stringId) {
@@ -279,20 +272,20 @@ public partial class TriggerContext {
 
     private void SpawnNpc(int spawnId) {
         if (!Field.Entities.EventNpcSpawns.TryGetValue(spawnId, out EventSpawnPointNPC? spawn)) {
-            logger.Error("[SpawnNpc] Invalid spawnId:{SpawnId}", spawnId);
+            logger.Error("[SpawnMonster] Invalid spawnId:{SpawnId}", spawnId);
             return;
         }
 
         foreach (SpawnPointNPCListEntry entry in spawn.NpcList) {
             if (!Field.NpcMetadata.TryGet(entry.NpcId, out NpcMetadata? npc)) {
-                logger.Error("[SpawnNpc] Invalid npcId:{NpcId}", entry.NpcId);
+                logger.Error("[SpawnMonster] Invalid npcId:{NpcId}", entry.NpcId);
                 continue;
             }
 
             for (int i = 0; i < entry.Count; i++) {
                 FieldNpc? fieldNpc = Field.SpawnNpc(npc, spawn.Position, spawn.Rotation, spawnAnimation: spawn.SpawnAnimation);
                 if (fieldNpc == null) {
-                    logger.Error("[SpawnNpc] Failed to spawn npcId:{NpcId}", entry.NpcId);
+                    logger.Error("[SpawnMonster] Failed to spawn npcId:{NpcId}", entry.NpcId);
                     continue;
                 }
 

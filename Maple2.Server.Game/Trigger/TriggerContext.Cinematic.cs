@@ -1,6 +1,6 @@
 ﻿using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
-using Maple2.Server.Game.Trigger.Helpers;
+using Maple2.Server.Game.Scripting.Trigger;
 
 namespace Maple2.Server.Game.Trigger;
 
@@ -69,15 +69,15 @@ public partial class TriggerContext {
         }
     }
 
-    public void SetSceneSkip(string state, string nextState) {
-        WarnLog("[SetSceneSkip] state:{State}, nextState:{NextState}", state, nextState);
-        skipState = Owner.GetState(state);
+    public void SetSceneSkip(dynamic state, string nextState) {
+        WarnLog("[SetSceneSkip] state:{State}, nextState:{NextState}", nameof(state), nextState);
+        skipState = state;
         Broadcast(CinematicPacket.SetSkipScene(nextState));
     }
 
-    public void SetSkip(string state) {
+    public void SetSkip(dynamic state) {
         WarnLog("[SetSkip] state:{State}", nameof(state));
-        skipState = Owner.GetState(state);
+        skipState = state;
         Broadcast(CinematicPacket.SetSkipState(""));
     }
 

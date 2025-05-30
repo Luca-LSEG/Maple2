@@ -3,9 +3,9 @@ using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
-using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
+using Maple2.Server.Game.Scripting.Trigger;
 
 namespace Maple2.Server.Game.Trigger;
 
@@ -204,33 +204,33 @@ public partial class TriggerContext {
         }
     }
 
-    public void SetState(int triggerId, string[] states, bool randomize) {
+    public void SetState(int triggerId, object[] states, bool randomize) {
         ErrorLog("[SetState] triggerId:{TriggerId}, states:{States}, randomize:{Randomize}", triggerId, string.Join(", ", states), randomize);
         if (randomize) {
             Random.Shared.Shuffle(states);
         }
 
-        Field.States[triggerId] = Owner.GetStates(states);
+        Field.States[triggerId] = new List<object>(states);
     }
 
     #region Conditions
-    public bool CheckAnyUserAdditionalEffect(int boxId, int additionalEffectId, int level, bool negate) {
+    public bool CheckAnyUserAdditionalEffect(int boxId, int additionalEffectId, int level) {
         DebugLog("[CheckAnyUserAdditionalEffect] boxId:{BoxId}, additionalEffectId:{EffectId}, level:{Level}", boxId, additionalEffectId, level);
         foreach (FieldPlayer player in PlayersInBox(boxId)) {
             if (player.Buffs.HasBuff(additionalEffectId, (short) level)) {
-                return !negate;
+                return true;
             }
         }
 
-        return negate;
+        return false;
     }
 
-    public bool CheckSameUserTag(int boxId, bool negate) {
+    public bool CheckSameUserTag(int boxId) {
         ErrorLog("[CheckSameUserTag] boxId:{BoxId}", boxId);
         return false;
     }
 
-    public bool QuestUserDetected(int[] boxIds, int[] questIds, int[] questStates, int jobCode, bool negate) {
+    public bool QuestUserDetected(int[] boxIds, int[] questIds, int[] questStates, int jobCode) {
         DebugLog("[QuestUserDetected] boxIds:{BoxIds}, questIds:{QuestIds}, questStates:{QuestStates}, jobCode:{JobCode}",
             string.Join(", ", boxIds), string.Join(", ", questIds), string.Join(", ", questStates), (JobCode) jobCode);
 
@@ -243,24 +243,24 @@ public partial class TriggerContext {
                 switch (questStates[0]) {
                     case 1: // Started
                         if (quest.State == QuestState.Started) {
-                            return !negate;
+                            return true;
                         }
                         break;
                     case 2: // Started and Can Complete
                         if (quest.State == QuestState.Started && player.Session.Quest.CanComplete(quest)) {
-                            return !negate;
+                            return true;
                         }
                         break;
                     case 3: // Completed
                         if (quest.State == QuestState.Completed) {
-                            return !negate;
+                            return true;
                         }
                         break;
                 }
             }
         }
 
-        return negate;
+        return false;
     }
 
     public bool UserDetected(int[] boxIds, int jobCode) {

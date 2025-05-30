@@ -186,8 +186,6 @@ var modelReaders = new List<PrefixedM2dReader> {
     new("/model/textures/", Path.Combine(ms2Root, "Resource/Model/Textures.m2d")),
 };
 
-UpdateDatabase(metadataContext, new TriggerMapper(xmlReader));
-
 UpdateDatabase(metadataContext, new ServerTableMapper(serverReader));
 UpdateDatabase(metadataContext, new AiMapper(serverReader));
 

@@ -140,15 +140,12 @@ public partial class TriggerContext {
     #endregion
 
     #region Conditions
-    public bool CheckDungeonLobbyUserCount(bool negate) {
+    public bool CheckDungeonLobbyUserCount() {
         DebugLog("[CheckDungeonLobbyUserCount]");
         if (Field is not DungeonFieldManager dungeonField) {
-            return negate;
+            return false;
         }
 
-        if (negate) {
-            return Field.Players.Values.Count < dungeonField.Size;
-        }
         return Field.Players.Values.Count >= dungeonField.Size;
     }
 
@@ -157,15 +154,12 @@ public partial class TriggerContext {
         return false;
     }
 
-    public bool IsDungeonRoom(bool negate) {
+    public bool IsDungeonRoom() {
         DebugLog("[IsDungeonRoom]");
-        if (negate) {
-            return Field is not DungeonFieldManager;
-        }
         return Field is DungeonFieldManager;
     }
 
-    public bool IsPlayingMapleSurvival(bool negate) {
+    public bool IsPlayingMapleSurvival() {
         ErrorLog("[IsPlayingMapleSurvival]");
         return false;
     }

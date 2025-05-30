@@ -35,10 +35,10 @@ public class TriggerCommand : GameCommand {
             ctx.Console.Out.WriteLine($"Triggers: {fieldTriggers.Count}");
             foreach (FieldTrigger trigger in fieldTriggers) {
                 string triggerName = trigger.Value.Name;
-                List<string> triggerStates = trigger.GetStateNames();
-                var result = new StringBuilder($"TriggerStates for {triggerName}, count: {triggerStates.Count}\n");
+                string[] triggerStates = GetStateNames(trigger);
+                var result = new StringBuilder($"TriggerStates for {triggerName}, count: {triggerStates.Length}\n");
 
-                for (int i = 0; i < triggerStates.Count; i++) {
+                for (int i = 0; i < triggerStates.Length; i++) {
                     result.AppendLine($"  -[{i}] {triggerStates[i]}");
                 }
 
@@ -79,8 +79,8 @@ public class TriggerCommand : GameCommand {
                 ctx.Console.Out.WriteLine($"Trigger {triggerName} reset.");
             } else {
                 // Set trigger to specific state
-                List<string> triggerStates = currentFieldTrigger.GetStateNames();
-                if (stateIndex >= triggerStates.Count) {
+                string[] triggerStates = GetStateNames(currentFieldTrigger);
+                if (stateIndex >= triggerStates.Length) {
                     ctx.Console.Error.WriteLine($"Invalid state index for {triggerName}");
                     return;
                 }
@@ -182,5 +182,11 @@ public class TriggerCommand : GameCommand {
 
             ctx.Console.Out.WriteLine($"Function {functionName} executed.");
         }
+    }
+
+    private static string[] GetStateNames(FieldTrigger trigger) {
+        return trigger.Context.Scope.GetVariableNames()
+            .Where(v => !v.StartsWith("__") && v != "trigger_api" && v != "initial_state")
+            .ToArray();
     }
 }
