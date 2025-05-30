@@ -19,6 +19,5 @@ public record MS2WayPoint(
     Vector3 Rotation,
     string ApproachAnimation,
     string ArriveAnimation,
-    int ArriveAnimationTime,
-    bool AirWayPoint
+    int ArriveAnimationTime
 );
