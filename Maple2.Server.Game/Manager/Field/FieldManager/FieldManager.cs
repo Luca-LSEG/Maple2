@@ -463,15 +463,14 @@ public partial class FieldManager : IField {
         Portal srcPortal = fieldPortal;
         switch (srcPortal.Type) {
             case PortalType.InHome:
-                Plot? fieldPlot = session.Housing.GetFieldPlot();
-                PlotCube? cubePortal = fieldPlot?.Cubes.Values.FirstOrDefault(x => x.Interact?.PortalSettings is not null && x.Interact.PortalSettings.PortalObjectId == fieldPortal.ObjectId);
+                PlotCube? cubePortal = session.Housing.GetFieldPlot()?.Cubes.Values.FirstOrDefault(x => x.Interact?.PortalSettings is not null && x.Interact.PortalSettings.PortalObjectId == fieldPortal.ObjectId);
                 if (cubePortal is null) {
                     return false;
                 }
 
                 switch (cubePortal.Interact!.PortalSettings!.Destination) {
                     case CubePortalDestination.PortalInHome:
-                        PlotCube? destinationCube = fieldPlot?.Cubes.Values.FirstOrDefault(x => x.Interact?.PortalSettings is not null && x.Interact.PortalSettings.PortalName == cubePortal.Interact.PortalSettings.DestinationTarget);
+                        PlotCube? destinationCube = session.Housing.GetFieldPlot()?.Cubes.Values.FirstOrDefault(x => x.Interact?.PortalSettings is not null && x.Interact.PortalSettings.PortalName == cubePortal.Interact.PortalSettings.DestinationTarget);
                         if (destinationCube is null) {
                             return false;
                         }
